@@ -1,0 +1,102 @@
+X_1_1; O_1_1; Empty(1, 1).
+X_1_2; O_1_2; Empty(1, 2).
+X_1_3; O_1_3; Empty(1, 3).
+X_2_1; O_2_1; Empty(2, 1).
+X_2_2; O_2_2; Empty(2, 2).
+X_2_3; O_2_3; Empty(2, 3).
+X_3_1; O_3_1; Empty(3, 1).
+X_3_2; O_3_2; Empty(3, 2).
+X_3_3; O_3_3; Empty(3, 3).
+
+- (X_1_1 & O_1_1); - (X_1_1 & Empty(1, 1)); - (O_1_1 & Empty(1, 1)).
+- (X_1_2 & O_1_2); - (X_1_2 & Empty(1, 2)); - (O_1_2 & Empty(1, 2)).
+- (X_1_3 & O_1_3); - (X_1_3 & Empty(1, 3)); - (O_1_3 & Empty(1, 3)).
+- (X_2_1 & O_2_1); - (X_2_1 & Empty(2, 1)); - (O_2_1 & Empty(2, 1)).
+- (X_2_2 & O_2_2); - (X_2_2 & Empty(2, 2)); - (O_2_2 & Empty(2, 2)).
+- (X_2_3 & O_2_3); - (X_2_3 & Empty(2, 3)); - (O_2_3 & Empty(2, 3)).
+- (X_3_1 & O_3_1); - (X_3_1 & Empty(3, 1)); - (O_3_1 & Empty(3, 1)).
+- (X_3_2 & O_3_2); - (X_3_2 & Empty(3, 2)); - (O_3_2 & Empty(3, 2)).
+- (X_3_3 & O_3_3); - (X_3_3 & Empty(3, 3)); - (O_3_3 & Empty(3, 3)).
+
+Turn_X; Turn_O.
+- (Turn_X & Turn_O).
+
+Move_X(Row, Col) -> Turn_O.
+Move_O(Row, Col) -> Turn_X.
+
+Move_X(Row, Col) <- (
+    Turn_X & Empty(Row, Col)
+).
+
+Move_X(1, 1) -> X_1_1.
+Move_X(1, 2) -> X_1_2.
+Move_X(1, 3) -> X_1_3.
+Move_X(2, 1) -> X_2_1.
+Move_X(2, 2) -> X_2_2.
+Move_X(2, 3) -> X_2_3.
+Move_X(3, 1) -> X_3_1.
+Move_X(3, 2) -> X_3_2.
+Move_X(3, 3) -> X_3_3.
+
+- (Move_X(Row1, Col1) & Move_X(Row2, Col2)) for all distinct (Row1, Col1), (Row2, Col2).
+
+ComputerMove(Row, Col) <- (
+    Turn_O & Empty(Row, Col)
+).
+
+ComputerMove(1, 1) -> O_1_1.
+ComputerMove(1, 2) -> O_1_2.
+ComputerMove(1, 3) -> O_1_3.
+ComputerMove(2, 1) -> O_2_1.
+ComputerMove(2, 2) -> O_2_2.
+ComputerMove(2, 3) -> O_2_3.
+ComputerMove(3, 1) -> O_3_1.
+ComputerMove(3, 2) -> O_3_2.
+ComputerMove(3, 3) -> O_3_3.
+
+- (ComputerMove(Row1, Col1) & ComputerMove(Row2, Col2)) for all distinct (Row1, Col1), (Row2, Col2).
+
+Block_X(Row, Col) <- (
+    Empty(Row, Col) & (
+        % Horizontal threats
+        (X_1_1 & X_1_2 & Empty(1, 3)) | (X_1_2 & X_1_3 & Empty(1, 1)) | (X_1_1 & X_1_3 & Empty(1, 2));
+        (X_2_1 & X_2_2 & Empty(2, 3)) | (X_2_2 & X_2_3 & Empty(2, 1)) | (X_2_1 & X_2_3 & Empty(2, 2));
+        (X_3_1 & X_3_2 & Empty(3, 3)) | (X_3_2 & X_3_3 & Empty(3, 1)) | (X_3_1 & X_3_3 & Empty(3, 2));
+        
+        % Vertical threats
+        (X_1_1 & X_2_1 & Empty(3, 1)) | (X_2_1 & X_3_1 & Empty(1, 1)) | (X_1_1 & X_3_1 & Empty(2, 1));
+        (X_1_2 & X_2_2 & Empty(3, 2)) | (X_2_2 & X_3_2 & Empty(1, 2)) | (X_1_2 & X_3_2 & Empty(2, 2));
+        (X_1_3 & X_2_3 & Empty(3, 3)) | (X_2_3 & X_3_3 & Empty(1, 3)) | (X_1_3 & X_3_3 & Empty(2, 3));
+        
+        % Diagonal threats
+        (X_1_1 & X_2_2 & Empty(3, 3)) | (X_2_2 & X_3_3 & Empty(1, 1)) | (X_1_1 & X_3_3 & Empty(2, 2));
+        (X_1_3 & X_2_2 & Empty(3, 1)) | (X_2_2 & X_3_1 & Empty(1, 3)) | (X_1_3 & X_3_1 & Empty(2, 2))
+    )
+).
+
+ComputerMove(Row, Col) <- Block_X(Row, Col).
+ComputerMove(Row, Col) <- (
+    Turn_O & Empty(Row, Col) & -Block_X(Row, Col)
+).
+
+Win_X <- (X_1_1 & X_1_2 & X_1_3).  
+Win_X <- (X_2_1 & X_2_2 & X_2_3).  
+Win_X <- (X_3_1 & X_3_2 & X_3_3).  
+Win_X <- (X_1_1 & X_2_1 & X_3_1).  
+Win_X <- (X_1_2 & X_2_2 & X_3_2).  
+Win_X <- (X_1_3 & X_2_3 & X_3_3).  
+Win_X <- (X_1_1 & X_2_2 & X_3_3).  
+Win_X <- (X_1_3 & X_2_2 & X_3_1).  
+
+Win_O <- (O_1_1 & O_1_2 & O_1_3).  
+Win_O <- (O_2_1 & O_2_2 & O_2_3).  
+Win_O <- (O_3_1 & O_3_2 & O_3_3).  
+Win_O <- (O_1_1 & O_2_1 & O_3_1).  
+Win_O <- (O_1_2 & O_2_2 & O_3_2).  
+Win_O <- (O_1_3 & O_2_3 & O_3_3).  
+Win_O <- (O_1_1 & O_2_2 & O_3_3).  
+Win_O <- (O_1_3 & O_2_2 & O_3_1).
+
+GameOver <- (Win_X; Win_O).
+- Turn_X if GameOver.
+- Turn_O if GameOver.
